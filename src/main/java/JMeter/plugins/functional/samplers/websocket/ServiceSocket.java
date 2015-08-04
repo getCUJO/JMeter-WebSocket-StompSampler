@@ -12,6 +12,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.engine.util.CompoundVariable;
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
@@ -37,20 +38,26 @@ public class ServiceSocket {
 	protected StringBuffer logMessage = new StringBuffer();
 	protected CountDownLatch openLatch = new CountDownLatch(1);
 	protected CountDownLatch closeLatch = new CountDownLatch(1);
+	protected CountDownLatch connectedLatch = new CountDownLatch(1);
+	protected CountDownLatch subscribeLatch = new CountDownLatch(1);
 	protected Session session = null;
-	protected String responsePattern;
+	protected String connectPattern;
+	protected String subscribePattern;
 	protected String disconnectPattern;
 	protected int messageCounter = 1;
-	protected Pattern responseExpression;
+	protected Pattern connectedExpression;
+	protected Pattern subscribeExpression;
 	protected Pattern disconnectExpression;
 	protected boolean connected = false;
+	private String sessionId;
 
 	public ServiceSocket(WebSocketSampler parent, WebSocketClient client) {
 		this.parent = parent;
 		this.client = client;
 
 		//Evaluate response matching patterns in case thay contain JMeter variables (i.e. ${var})
-		responsePattern = new CompoundVariable(parent.getResponsePattern()).execute();
+		connectPattern = new CompoundVariable(parent.getConnectPattern()).execute();
+		subscribePattern = new CompoundVariable(parent.getSubscribePattern()).execute();
 		disconnectPattern = new CompoundVariable(parent.getCloseConncectionPattern()).execute();
 		logMessage.append("\n\n[Execution Flow]\n");
 		logMessage.append(" - Opening new connection\n");
@@ -59,24 +66,27 @@ public class ServiceSocket {
 
 	@OnWebSocketMessage
 	public void onMessage(String msg) {
-		//		synchronized (parent) {
-		log.debug("Received message: " + msg);
-		String length = " (" + msg.length() + " bytes)";
-		logMessage.append(" - Received message #").append(messageCounter).append(length);
-		logMessage.append(msg);
-		addResponseMessage("[Message " + (messageCounter++) + "]\n" + msg + "\n\n");
+		synchronized (parent) {
+			log.debug("Received message {" + sessionId + "}: " + msg);
+			String length = " (" + msg.length() + " bytes)";
+			logMessage.append(" - Received message #").append(messageCounter).append(length);
+			logMessage.append(msg);
+			addResponseMessage("[Message " + (messageCounter++) + "]\n" + msg + "\n\n");
 
-		if (responseExpression == null || responseExpression.matcher(msg).find()) {
-			logMessage.append("; matched response pattern").append("\n");
-			closeLatch.countDown();
-		} else if (!disconnectPattern.isEmpty() && disconnectExpression.matcher(msg).find()) {
-			logMessage.append("; matched connection close pattern").append("\n");
-			closeLatch.countDown();
-			close(StatusCode.NORMAL, "JMeter closed session.");
-		} else {
-			logMessage.append("; didn't match any pattern").append("\n");
+			if (connectedExpression == null || connectedExpression.matcher(msg).find()) {
+				logMessage.append("; matched connected pattern").append("\n");
+				connectedLatch.countDown();
+			} else if (subscribeExpression == null || subscribeExpression.matcher(msg).find()) {
+				logMessage.append("; matched subscribe pattern").append("\n");
+				subscribeLatch.countDown();
+			} else if (!disconnectPattern.isEmpty() && disconnectExpression.matcher(msg).find()) {
+				logMessage.append("; matched connection close pattern").append("\n");
+				closeLatch.countDown();
+				close(StatusCode.NORMAL, "JMeter closed session.");
+			} else {
+				logMessage.append("; didn't match any pattern").append("\n");
+			}
 		}
-		//		}
 	}
 
 	@OnWebSocketConnect
@@ -102,6 +112,7 @@ public class ServiceSocket {
 		//Notify connection opening and closing latches of the closed connection
 		openLatch.countDown();
 		closeLatch.countDown();
+		connectedLatch.countDown();
 		connected = false;
 	}
 
@@ -135,6 +146,32 @@ public class ServiceSocket {
 		return res;
 	}
 
+	public boolean awaitConnected(int duration, TimeUnit unit) throws InterruptedException {
+		logMessage.append(" - Waiting for messages for ").append(duration).append(" ").append(unit.toString()).append("\n");
+		boolean res = this.connectedLatch.await(duration, unit);
+
+		if (!parent.isStreamingConnection()) {
+			close(StatusCode.NORMAL, "JMeter closed session.");
+		} else {
+			logMessage.append(" - Leaving streaming connection open").append("\n");
+		}
+
+		return res;
+	}
+
+	public boolean awaitSubscribe(int duration, TimeUnit unit) throws InterruptedException {
+		logMessage.append(" - Waiting for messages for ").append(duration).append(" ").append(unit.toString()).append("\n");
+		boolean res = this.subscribeLatch.await(duration, unit);
+
+		if (!parent.isStreamingConnection()) {
+			close(StatusCode.NORMAL, "JMeter closed session.");
+		} else {
+			logMessage.append(" - Leaving streaming connection open").append("\n");
+		}
+
+		return res;
+	}
+
 	public boolean awaitOpen(int duration, TimeUnit unit) throws InterruptedException {
 		logMessage.append(" - Waiting for the server connection for ").append(duration).append(" ").append(unit.toString()).append("\n");
 		boolean res = this.openLatch.await(duration, unit);
@@ -156,6 +193,7 @@ public class ServiceSocket {
 	}
 
 	public void sendMessage(String message) throws IOException {
+		log.debug("** send message ** session id {" + sessionId + "} : " + message);
 		session.getRemote().sendString(message);
 	}
 
@@ -205,17 +243,25 @@ public class ServiceSocket {
 
 	protected void initializePatterns() {
 		try {
-			logMessage.append(" - Using response message pattern \"").append(responsePattern).append("\"\n");
-			responseExpression = (responsePattern != null || !responsePattern.isEmpty()) ? Pattern.compile(responsePattern) : null;
+			logMessage.append(" - Using response message pattern \"").append(connectPattern).append("\"\n");
+			connectedExpression = StringUtils.isNotEmpty(connectPattern) ? Pattern.compile(connectPattern) : null;
 		} catch (Exception ex) {
 			logMessage.append(" - Invalid response message regular expression pattern: ").append(ex.getLocalizedMessage()).append("\n");
 			log.error("Invalid response message regular expression pattern: " + ex.getLocalizedMessage());
-			responseExpression = null;
+			connectedExpression = null;
+		}
+		try {
+			logMessage.append(" - Using response message pattern \"").append(subscribePattern).append("\"\n");
+			subscribeExpression = StringUtils.isNotEmpty(subscribePattern) ? Pattern.compile(subscribePattern) : null;
+		} catch (Exception ex) {
+			logMessage.append(" - Invalid response message regular expression pattern: ").append(ex.getLocalizedMessage()).append("\n");
+			log.error("Invalid response message regular expression pattern: " + ex.getLocalizedMessage());
+			subscribeExpression = null;
 		}
 
 		try {
 			logMessage.append(" - Using disconnect pattern \"").append(disconnectPattern).append("\"\n");
-			disconnectExpression = (disconnectPattern != null || !disconnectPattern.isEmpty()) ? Pattern.compile(disconnectPattern) : null;
+			disconnectExpression = StringUtils.isNotEmpty(disconnectPattern) ? Pattern.compile(disconnectPattern) : null;
 		} catch (Exception ex) {
 			logMessage.append(" - Invalid disconnect regular expression pattern: ").append(ex.getLocalizedMessage()).append("\n");
 			log.error("Invalid disconnect regular regular expression pattern: " + ex.getLocalizedMessage());
@@ -236,8 +282,6 @@ public class ServiceSocket {
 		logMessage.append("\n\n[Execution Flow]\n");
 		logMessage.append(" - Reusing exising connection\n");
 		error = 0;
-
-		this.closeLatch = new CountDownLatch(1);
 	}
 
 	private void addResponseMessage(String message) {
@@ -253,5 +297,10 @@ public class ServiceSocket {
 			responeBacklog.poll();
 		}
 		responeBacklog.add(message);
+	}
+
+	public void setSessionId(final String sessionId) {
+		this.sessionId = sessionId;
+		logMessage.append(" Session id : ").append(sessionId).append("\n");
 	}
 }

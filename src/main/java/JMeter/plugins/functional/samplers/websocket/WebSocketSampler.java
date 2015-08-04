@@ -70,6 +70,9 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 		String connectionId = getConnectionId();
 
 		if (isStreamingConnection() && connectionList.containsKey(connectionId)) {
+
+			log.debug("connection " + connectionId + "already in list");
+
 			ServiceSocket socket = connectionList.get(connectionId);
 			socket.initialize();
 			return socket;
@@ -80,6 +83,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 		WebSocketClient webSocketClient = new WebSocketClient(sslContexFactory, executor);
 
 		ServiceSocket socket = new ServiceSocket(this, webSocketClient);
+		socket.setSessionId(connectionId);
 		if (isStreamingConnection()) {
 			connectionList.put(connectionId, socket);
 		}
@@ -155,9 +159,25 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 			}
 
 
-			sampleResult.setResponseCode(sendMessage(socket, connectPaylodMessage, responseTimeout));
+			sendMessage(socket, connectPaylodMessage);
 
-			sampleResult.setResponseCode(sendMessage(socket, subscribePaylodMessage, responseTimeout));
+			//Wait for any of the following:
+			// - Response matching response pattern is received
+			// - Response matching connection closing pattern is received
+			// - Timeout is reached
+			socket.awaitConnected(responseTimeout, TimeUnit.MILLISECONDS);
+
+			sampleResult.setResponseCode(getCodeRetour(socket));
+
+			sendMessage(socket, subscribePaylodMessage);
+
+			//Wait for any of the following:
+			// - Response matching response pattern is received
+			// - Response matching connection closing pattern is received
+			// - Timeout is reached
+			socket.awaitSubscribe(responseTimeout, TimeUnit.MILLISECONDS);
+
+			sampleResult.setResponseCode(getCodeRetour(socket));
 
 			//Set sampler response code
 			if (socket.getError() != 0) {
@@ -191,17 +211,13 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 		return sampleResult;
 	}
 
-	private String sendMessage(ServiceSocket socket, String payloadMessage, int responseTimeout) throws IOException, InterruptedException {
-		String codeRetour = null;
-
+	private void sendMessage(ServiceSocket socket, String payloadMessage) throws IOException, InterruptedException {
 		//Send message only if it is not empty
 		socket.sendMessage(payloadMessage);
+	}
 
-		//Wait for any of the following:
-		// - Response matching response pattern is received
-		// - Response matching connection closing pattern is received
-		// - Timeout is reached
-		socket.awaitClose(responseTimeout, TimeUnit.MILLISECONDS);
+	private String getCodeRetour(ServiceSocket socket) {
+		String codeRetour = null;
 
 		//If no response is received set code 204; actually not used...needs to do something else
 		if (socket.getResponseMessage() == null || socket.getResponseMessage().isEmpty()) {
@@ -232,7 +248,6 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 			builder.append("\\n\\n\\u0000").append("\"]");
 		}
 		String payLoad = builder.toString();
-		log.debug("** payload message : " + payLoad);
 
 		return payLoad;
 	}
@@ -429,12 +444,20 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 		return getPropertyAsString("connectionId");
 	}
 
-	public void setResponsePattern(String responsePattern) {
-		setProperty("responsePattern", responsePattern);
+	public void setConnectPattern(String connectPattern) {
+		setProperty("connectPattern", connectPattern);
 	}
 
-	public String getResponsePattern() {
-		return getPropertyAsString("responsePattern");
+	public String getConnectPattern() {
+		return getPropertyAsString("connectPattern");
+	}
+
+	public void setSubscribePattern(String subscribePattern) {
+		setProperty("subscribePattern", subscribePattern);
+	}
+
+	public String getSubscribePattern() {
+		return getPropertyAsString("subscribePattern");
 	}
 
 	public void setCloseConncectionPattern(String closeConncectionPattern) {
@@ -556,7 +579,6 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 
 	@Override
 	public void testEnded(String host) {
-		log.debug("close session ???");
 		for (ServiceSocket socket : connectionList.values()) {
 			socket.close();
 		}

@@ -4,7 +4,7 @@
 
   <groupId>co.uk.bugtrap</groupId>
   <artifactId>JMeterWebSocketStompSampler</artifactId>
-  <version>0.1</version>
+  <version>0.2</version>
   <packaging>jar</packaging>
 
   <name>JMeterWebSocketStompSampler</name>

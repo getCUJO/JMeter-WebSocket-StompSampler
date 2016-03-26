@@ -54,7 +54,8 @@ public class WebSocketSamplerGui extends AbstractSamplerGui {
             webSocketSamplerPanel.setContextPath(webSocketSamplerTestElement.getContextPath());
             webSocketSamplerPanel.setContentEncoding(webSocketSamplerTestElement.getContentEncoding());
             webSocketSamplerPanel.setConnectPayload(webSocketSamplerTestElement.getConnectPayload());
-            webSocketSamplerPanel.setSubscribePayload(webSocketSamplerTestElement.getSubscribePayload());
+            webSocketSamplerPanel.setSendPayload(webSocketSamplerTestElement.getSendPayload());
+            webSocketSamplerPanel.setSendMultiPayload(webSocketSamplerTestElement.getSendMultiPayload());
             webSocketSamplerPanel.setResponseTimeout(webSocketSamplerTestElement.getResponseTimeout());
             webSocketSamplerPanel.setConnectionTimeout(webSocketSamplerTestElement.getConnectionTimeout());
             webSocketSamplerPanel.setIgnoreSslErrors(webSocketSamplerTestElement.isIgnoreSslErrors());
@@ -86,7 +87,8 @@ public class WebSocketSamplerGui extends AbstractSamplerGui {
             webSocketSamplerTestElement.setContextPath(webSocketSamplerPanel.getContextPath());
             webSocketSamplerTestElement.setContentEncoding(webSocketSamplerPanel.getContentEncoding());
             webSocketSamplerTestElement.setConnectPayload(webSocketSamplerPanel.getConnectPayload());
-            webSocketSamplerTestElement.setSubscribePayload(webSocketSamplerPanel.getSubscribePayload());
+            webSocketSamplerTestElement.setSendPayload(webSocketSamplerPanel.getSendPayload());
+            webSocketSamplerTestElement.setSendMultiPayload(webSocketSamplerPanel.getSendMultiPayload());
             webSocketSamplerTestElement.setConnectionTimeout(webSocketSamplerPanel.getConnectionTimeout());
             webSocketSamplerTestElement.setResponseTimeout(webSocketSamplerPanel.getResponseTimeout());
             webSocketSamplerTestElement.setIgnoreSslErrors(webSocketSamplerPanel.isIgnoreSslErrors());

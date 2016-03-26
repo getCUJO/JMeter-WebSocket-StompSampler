@@ -58,10 +58,13 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
         ignoreSslErrorsCheckBox = new javax.swing.JCheckBox();
         jScrollPane1 = new javax.swing.JScrollPane();
         jScrollPane2 = new javax.swing.JScrollPane();
+        jScrollPane3 = new javax.swing.JScrollPane();
         connectPayloadEditorPane = new javax.swing.JEditorPane();
-        subscribePayloadEditorPane = new javax.swing.JEditorPane();
-        jLabel14 = new javax.swing.JLabel();
-        jLabel18 = new javax.swing.JLabel();
+        sendPayloadEditorPane = new javax.swing.JEditorPane();
+        sendMultiPayloadEditorPane = new javax.swing.JEditorPane();
+        jLabelConnect = new javax.swing.JLabel();
+        jLabelSend = new javax.swing.JLabel();
+        jLabelSendMulti = new javax.swing.JLabel();
         streamingConnectionCheckBox = new javax.swing.JCheckBox();
         closeConncectionPatternTextField = new javax.swing.JTextField();
         messageBacklogTextField = new javax.swing.JTextField();
@@ -149,10 +152,12 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
         ignoreSslErrorsCheckBox.setText("Ignore SSL certificate errors");
 
         jScrollPane1.setViewportView(connectPayloadEditorPane);
-        jScrollPane2.setViewportView(subscribePayloadEditorPane);
+        jScrollPane2.setViewportView(sendPayloadEditorPane);
+        jScrollPane3.setViewportView(sendMultiPayloadEditorPane);
 
-        jLabel14.setText("CONNECT");
-        jLabel18.setText("SUBSCRIBE");
+        jLabelConnect.setText("CONNECT");
+        jLabelSend.setText("SEND");
+        jLabelSendMulti.setText("SEND MULTI");
 
         streamingConnectionCheckBox.setText("Streaming connection");
 
@@ -166,6 +171,7 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
                                         .addComponent(querystringAttributesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addComponent(jScrollPane1)
                                         .addComponent(jScrollPane2)
+                                        .addComponent(jScrollPane3)
                                         .addGroup(jPanel3Layout.createSequentialGroup()
                                                 .addComponent(jLabel4)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -180,8 +186,9 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
                                                 .addComponent(connectionIdTextField))
                                         .addGroup(jPanel3Layout.createSequentialGroup()
                                                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                        .addComponent(jLabel14)
-                                                        .addComponent(jLabel18)
+                                                        .addComponent(jLabelConnect)
+                                                        .addComponent(jLabelSend)
+                                                        .addComponent(jLabelSendMulti)
                                                         .addGroup(jPanel3Layout.createSequentialGroup()
                                                                         .addComponent(ignoreSslErrorsCheckBox)
                                                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -212,18 +219,21 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
                                         .addComponent(contextPathTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(ignoreSslErrorsCheckBox)
-                                        .addComponent(streamingConnectionCheckBox)
-                                        )
+                                                .addComponent(ignoreSslErrorsCheckBox)
+                                                .addComponent(streamingConnectionCheckBox)
+                                )
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(querystringAttributesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 102, Short.MAX_VALUE)
                                 .addGap(8, 8, 8)
-                                .addComponent(jLabel14)
+                                .addComponent(jLabelConnect)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
                                 .addContainerGap()
-                                .addComponent(jLabel18)
+                                .addComponent(jLabelSend)
                                 .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
+                                .addContainerGap()
+                                .addComponent(jLabelSendMulti)
+                                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
                                 .addContainerGap())
         );
 
@@ -264,9 +274,10 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
     private javax.swing.JTextField contextPathTextField;
     private javax.swing.JCheckBox ignoreSslErrorsCheckBox;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabelConnect;
     private javax.swing.JLabel jLabel17;
-    private javax.swing.JLabel jLabel18;
+    private javax.swing.JLabel jLabelSend;
+    private javax.swing.JLabel jLabelSendMulti;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -278,11 +289,13 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTextField messageBacklogTextField;
     private javax.swing.JTextField protocolTextField;
     private javax.swing.JPanel querystringAttributesPanel;
     private javax.swing.JEditorPane connectPayloadEditorPane;
-    private javax.swing.JEditorPane subscribePayloadEditorPane;
+    private javax.swing.JEditorPane sendPayloadEditorPane;
+    private javax.swing.JEditorPane sendMultiPayloadEditorPane;
     private javax.swing.JTextField responseTimeoutTextField;
     private javax.swing.JTextField serverAddressTextField;
     private javax.swing.JTextField serverPortTextField;
@@ -365,12 +378,21 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
         return connectPayloadEditorPane.getText();
     }
 
-    public void setSubscribePayload(String subscribePayload) {
-        subscribePayloadEditorPane.setText(subscribePayload);
+    public void setSendPayload(String sendPayload) {
+        sendPayloadEditorPane.setText(sendPayload);
     }
 
-    public String getSubscribePayload() {
-        return subscribePayloadEditorPane.getText();
+    public String getSendPayload() {
+        return sendPayloadEditorPane.getText();
+    }
+
+    //TODO
+    public void setSendMultiPayload(String sendPayload) {
+        sendMultiPayloadEditorPane.setText(sendPayload);
+    }
+
+    public String getSendMultiPayload() {
+        return sendMultiPayloadEditorPane.getText();
     }
 
     public void setStreamingConnection(Boolean streamingConnection) {

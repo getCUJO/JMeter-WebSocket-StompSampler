@@ -6,7 +6,6 @@ package JMeter.plugins.functional.samplers.websocket;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.Iterator;
@@ -15,7 +14,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import com.mongodb.io.ByteBufferFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.engine.util.CompoundVariable;
 import org.apache.jorphan.logging.LoggingManager;
@@ -43,14 +41,14 @@ public class ServiceSocket {
     protected CountDownLatch openLatch = new CountDownLatch(1);
     protected CountDownLatch closeLatch = new CountDownLatch(1);
     protected CountDownLatch connectedLatch = new CountDownLatch(1);
-    protected CountDownLatch subscribeLatch = new CountDownLatch(1);
+    protected CountDownLatch sendLatch = new CountDownLatch(1);
     protected Session session = null;
     protected String connectPattern;
-    protected String subscribePattern;
+    protected String sendPattern;
     protected String disconnectPattern;
     protected int messageCounter = 1;
     protected Pattern connectedExpression;
-    protected Pattern subscribeExpression;
+    protected Pattern sendExpression;
     protected Pattern disconnectExpression;
     protected boolean connected = false;
     private String sessionId;
@@ -62,7 +60,7 @@ public class ServiceSocket {
         //TODO hard-coded connect patterns
         //Evaluate response matching patterns in case thay contain JMeter variables (i.e. ${var})
         connectPattern = new CompoundVariable("TODO").execute();
-        subscribePattern = new CompoundVariable("TODO").execute();
+        sendPattern = new CompoundVariable("TODO").execute();
         disconnectPattern = new CompoundVariable("TODO").execute();
         logMessage.append("\n\n[Execution Flow]\n");
         logMessage.append(" - Opening new connection\n");
@@ -81,9 +79,9 @@ public class ServiceSocket {
             if (connectedExpression == null || connectedExpression.matcher(msg).find()) {
                 logMessage.append("; matched connected pattern").append("\n");
                 connectedLatch.countDown();
-            } else if (subscribeExpression == null || subscribeExpression.matcher(msg).find()) {
-                logMessage.append("; matched subscribe pattern").append("\n");
-                subscribeLatch.countDown();
+            } else if (sendExpression == null || sendExpression.matcher(msg).find()) {
+                logMessage.append("; matched send pattern").append("\n");
+                sendLatch.countDown();
             } else if (!disconnectPattern.isEmpty() && disconnectExpression.matcher(msg).find()) {
                 logMessage.append("; matched connection close pattern").append("\n");
                 closeLatch.countDown();
@@ -164,9 +162,9 @@ public class ServiceSocket {
         return res;
     }
 
-    public boolean awaitSubscribe(int duration, TimeUnit unit) throws InterruptedException {
+    public boolean awaitSend(int duration, TimeUnit unit) throws InterruptedException {
         logMessage.append(" - Waiting for messages for ").append(duration).append(" ").append(unit.toString()).append("\n");
-        boolean res = this.subscribeLatch.await(duration, unit);
+        boolean res = this.sendLatch.await(duration, unit);
 
         if (!parent.isStreamingConnection()) {
             close(StatusCode.NORMAL, "JMeter closed session.");
@@ -261,12 +259,12 @@ public class ServiceSocket {
             connectedExpression = null;
         }
         try {
-            logMessage.append(" - Using response message pattern \"").append(subscribePattern).append("\"\n");
-            subscribeExpression = StringUtils.isNotEmpty(subscribePattern) ? Pattern.compile(subscribePattern) : null;
+            logMessage.append(" - Using response message pattern \"").append(sendPattern).append("\"\n");
+            sendExpression = StringUtils.isNotEmpty(sendPattern) ? Pattern.compile(sendPattern) : null;
         } catch (Exception ex) {
             logMessage.append(" - Invalid response message regular expression pattern: ").append(ex.getLocalizedMessage()).append("\n");
             log.error("Invalid response message regular expression pattern: " + ex.getLocalizedMessage());
-            subscribeExpression = null;
+            sendExpression = null;
         }
 
         try {

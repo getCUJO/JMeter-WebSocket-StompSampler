@@ -122,7 +122,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 
         //Set the message payload in the Sampler
         String connectPaylodMessage = getConnectPayload();
-        String subscribePaylodMessage = getSubscribePayload();
+        String sendPaylodMessage = getSendPayload();
 
         int responseTimeout;
         try {
@@ -132,7 +132,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
             responseTimeout = DEFAULT_RESPONSE_TIMEOUT;
         }
 
-        sampleResult.setSamplerData(new StringBuilder(connectPaylodMessage).append("\n").append(subscribePaylodMessage).toString());
+        sampleResult.setSamplerData(new StringBuilder(connectPaylodMessage).append("\n").append(sendPaylodMessage).toString());
 
         //Could improve precission by moving this closer to the action
         sampleResult.sampleStart();
@@ -147,16 +147,18 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
                 sampleResult.setResponseMessage(errorList.toString());
                 errorList.append(" - Connection couldn't be opened").append("\n");
                 return sampleResult;
+
             }
-            if (StringUtils.isEmpty(connectPaylodMessage) || StringUtils.isEmpty(subscribePaylodMessage)) {
-                //Couldn't open a connection, set the status and exit
-                sampleResult.setResponseCode("400");
-                sampleResult.setSuccessful(false);
-                sampleResult.sampleEnd();
-                errorList.append(" - Connect or Subscribe Payload Message is empty").append("\n");
-                sampleResult.setResponseMessage(errorList.toString());
-                return sampleResult;
-            }
+//TODO
+//            if (StringUtils.isEmpty(connectPaylodMessage) || StringUtils.isEmpty(sendPaylodMessage)) {
+//                //Couldn't open a connection, set the status and exit
+//                sampleResult.setResponseCode("400");
+//                sampleResult.setSuccessful(false);
+//                sampleResult.sampleEnd();
+//                errorList.append(" - Connect or Subscribe Payload Message is empty").append("\n");
+//                sampleResult.setResponseMessage(errorList.toString());
+//                return sampleResult;
+//            }
 
 
             sendMessage(socket, connectPaylodMessage);
@@ -172,13 +174,13 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 //
 //            sampleResult.setResponseCode(getCodeRetour(socket));
 //
-//            sendMessage(socket, subscribePaylodMessage);
+//            sendMessage(socket, sendPaylodMessage);
 
             //Wait for any of the following:
             // - Response matching response pattern is received
             // - Response matching connection closing pattern is received
             // - Timeout is reached
-//            socket.awaitSubscribe(responseTimeout, TimeUnit.MILLISECONDS);
+//            socket.awaitSend(responseTimeout, TimeUnit.MILLISECONDS);
 
             sampleResult.setResponseCode(getCodeRetour(socket));
 
@@ -398,13 +400,22 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
         return getPropertyAsString("connectPayload");
     }
 
-    public void setSubscribePayload(String subscribePayload) {
-        setProperty("subscribePayload", subscribePayload);
+    public void setSendPayload(String sendPayload) {
+        setProperty("sendPayload", sendPayload);
     }
 
-    public String getSubscribePayload() {
-        return getPropertyAsString("subscribePayload");
+    public String getSendPayload() {
+        return getPropertyAsString("sendPayload");
     }
+
+    public void setSendMultiPayload(String sendPayload) {
+        setProperty("sendMultiPayload", sendPayload);
+    }
+
+    public String getSendMultiPayload() {
+        return getPropertyAsString("sendMultiPayload");
+    }
+
 
     public void setIgnoreSslErrors(Boolean ignoreSslErrors) {
         setProperty("ignoreSslErrors", ignoreSslErrors);

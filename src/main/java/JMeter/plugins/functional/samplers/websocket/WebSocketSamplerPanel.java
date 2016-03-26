@@ -62,26 +62,9 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
         subscribePayloadEditorPane = new javax.swing.JEditorPane();
         jLabel14 = new javax.swing.JLabel();
         jLabel18 = new javax.swing.JLabel();
-        jLabel19 = new javax.swing.JLabel();
-        jLabel15 = new javax.swing.JLabel();
-        implementationComboBox = new javax.swing.JComboBox();
         streamingConnectionCheckBox = new javax.swing.JCheckBox();
-        stompCheckBox = new javax.swing.JCheckBox();
-        jLabel7 = new javax.swing.JLabel();
-        connectPatternTextField = new javax.swing.JTextField();
-        subscribePatternTextField = new javax.swing.JTextField();
-        jLabel9 = new javax.swing.JLabel();
         closeConncectionPatternTextField = new javax.swing.JTextField();
-        jLabel16 = new javax.swing.JLabel();
         messageBacklogTextField = new javax.swing.JTextField();
-        jLabel10 = new javax.swing.JLabel();
-        proxyAddressTextField = new javax.swing.JTextField();
-        jLabel11 = new javax.swing.JLabel();
-        proxyPortTextField = new javax.swing.JTextField();
-        jLabel12 = new javax.swing.JLabel();
-        proxyUsernameTextField = new javax.swing.JTextField();
-        jLabel13 = new javax.swing.JLabel();
-        proxyPasswordTextField = new javax.swing.JTextField();
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Web Server"));
 
@@ -168,15 +151,10 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
         jScrollPane1.setViewportView(connectPayloadEditorPane);
         jScrollPane2.setViewportView(subscribePayloadEditorPane);
 
-        jLabel14.setText("Connect Message");
-        jLabel18.setText("Subscribe Message");
-
-        jLabel15.setText("Implementation:");
-
-        implementationComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[]{"RFC6455 (v13)"}));
+        jLabel14.setText("CONNECT");
+        jLabel18.setText("SUBSCRIBE");
 
         streamingConnectionCheckBox.setText("Streaming connection");
-        stompCheckBox.setText("Stomp Protocol");
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -189,10 +167,6 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
                                         .addComponent(jScrollPane1)
                                         .addComponent(jScrollPane2)
                                         .addGroup(jPanel3Layout.createSequentialGroup()
-                                                .addComponent(jLabel15)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(implementationComboBox, 0, 1, Short.MAX_VALUE)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                                 .addComponent(jLabel4)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                                 .addComponent(protocolTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -209,11 +183,10 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
                                                         .addComponent(jLabel14)
                                                         .addComponent(jLabel18)
                                                         .addGroup(jPanel3Layout.createSequentialGroup()
-                                                                .addComponent(ignoreSslErrorsCheckBox)
-                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                                .addComponent(streamingConnectionCheckBox)
-                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                                .addComponent(stompCheckBox)))
+                                                                        .addComponent(ignoreSslErrorsCheckBox)
+                                                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                                        .addComponent(streamingConnectionCheckBox)
+                                                        ))
                                                 .addGap(0, 0, Short.MAX_VALUE))
                                         .addGroup(jPanel3Layout.createSequentialGroup()
                                                 .addComponent(jLabel5)
@@ -232,8 +205,7 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
                                         .addComponent(contentEncodingTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(jLabel8)
                                         .addComponent(connectionIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jLabel15)
-                                        .addComponent(implementationComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                )
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(jLabel5)
@@ -242,7 +214,7 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
                                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(ignoreSslErrorsCheckBox)
                                         .addComponent(streamingConnectionCheckBox)
-                                        .addComponent(stompCheckBox))
+                                        )
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(querystringAttributesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 102, Short.MAX_VALUE)
                                 .addGap(8, 8, 8)
@@ -254,32 +226,6 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
                                 .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
                                 .addContainerGap())
         );
-
-        jLabel7.setText("Connect pattern:");
-
-        jLabel19.setText("Subscribe pattern:");
-
-        jLabel9.setText("Close connection pattern:");
-
-        jLabel16.setText("Message backlog:");
-
-
-        jLabel10.setText("Server Name or IP:");
-
-        proxyAddressTextField.setEnabled(false);
-
-        jLabel11.setText("Port Number:");
-
-        proxyPortTextField.setEnabled(false);
-
-        jLabel12.setText("Username:");
-
-        proxyUsernameTextField.setEnabled(false);
-
-        jLabel13.setText("Password:");
-
-        proxyPasswordTextField.setEnabled(false);
-
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -317,26 +263,16 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
     private javax.swing.JTextField contentEncodingTextField;
     private javax.swing.JTextField contextPathTextField;
     private javax.swing.JCheckBox ignoreSslErrorsCheckBox;
-    private javax.swing.JComboBox implementationComboBox;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
-    private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
-    private javax.swing.JLabel jLabel15;
-    private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
-    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -344,32 +280,18 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextField messageBacklogTextField;
     private javax.swing.JTextField protocolTextField;
-    private javax.swing.JTextField proxyAddressTextField;
-    private javax.swing.JTextField proxyPasswordTextField;
-    private javax.swing.JTextField proxyPortTextField;
-    private javax.swing.JTextField proxyUsernameTextField;
     private javax.swing.JPanel querystringAttributesPanel;
     private javax.swing.JEditorPane connectPayloadEditorPane;
     private javax.swing.JEditorPane subscribePayloadEditorPane;
-    private javax.swing.JTextField connectPatternTextField;
-    private javax.swing.JTextField subscribePatternTextField;
     private javax.swing.JTextField responseTimeoutTextField;
     private javax.swing.JTextField serverAddressTextField;
     private javax.swing.JTextField serverPortTextField;
     private javax.swing.JCheckBox streamingConnectionCheckBox;
-    private javax.swing.JCheckBox stompCheckBox;
     // End of variables declaration//GEN-END:variables
 
     public void initFields() {
     }
 
-    public void setCloseConncectionPattern(String closeConncectionPattern) {
-        closeConncectionPatternTextField.setText(closeConncectionPattern);
-    }
-
-    public String getCloseConncectionPattern() {
-        return closeConncectionPatternTextField.getText();
-    }
 
     public void setConnectionId(String connectionId) {
         connectionIdTextField.setText(connectionId);
@@ -401,54 +323,6 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
 
     public String getProtocol() {
         return protocolTextField.getText();
-    }
-
-    public void setProxyAddress(String proxyAddress) {
-        proxyAddressTextField.setText(proxyAddress);
-    }
-
-    public String getProxyAddress() {
-        return proxyAddressTextField.getText();
-    }
-
-    public void setProxyPassword(String proxyPassword) {
-        proxyPasswordTextField.setText(proxyPassword);
-    }
-
-    public String getProxyPassword() {
-        return proxyPasswordTextField.getText();
-    }
-
-    public void setProxyPort(String proxyPort) {
-        proxyPortTextField.setText(proxyPort);
-    }
-
-    public String getProxyPort() {
-        return proxyPortTextField.getText();
-    }
-
-    public void setProxyUsername(String proxyUsername) {
-        proxyUsernameTextField.setText(proxyUsername);
-    }
-
-    public String getProxyUsername() {
-        return proxyUsernameTextField.getText();
-    }
-
-    public void setConnectPattern(String connectPattern) {
-        connectPatternTextField.setText(connectPattern);
-    }
-
-    public String getConnectPattern() {
-        return connectPatternTextField.getText();
-    }
-
-    public void setSubscribePattern(String subscribePattern) {
-        subscribePatternTextField.setText(subscribePattern);
-    }
-
-    public String getSubscribePattern() {
-        return subscribePatternTextField.getText();
     }
 
     public void setResponseTimeout(String responseTimeout) {
@@ -507,36 +381,12 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
         return streamingConnectionCheckBox.isSelected();
     }
 
-    public Boolean isStompProtocol() {
-        return stompCheckBox.isSelected();
-    }
-
-    public void setStompProtocol(final Boolean stompProtocol) {
-        stompCheckBox.setSelected(stompProtocol);
-    }
-
     public void setIgnoreSslErrors(Boolean ignoreSslErrors) {
         ignoreSslErrorsCheckBox.setSelected(ignoreSslErrors);
     }
 
     public Boolean isIgnoreSslErrors() {
         return ignoreSslErrorsCheckBox.isSelected();
-    }
-
-    public void setImplementation(String implementation) {
-        implementationComboBox.setSelectedItem(implementation);
-    }
-
-    public String getImplementation() {
-        return (String) implementationComboBox.getSelectedItem();
-    }
-
-    public void setMessageBacklog(String messageBacklog) {
-        messageBacklogTextField.setText(messageBacklog);
-    }
-
-    public String getMessageBacklog() {
-        return messageBacklogTextField.getText();
     }
 
     /**

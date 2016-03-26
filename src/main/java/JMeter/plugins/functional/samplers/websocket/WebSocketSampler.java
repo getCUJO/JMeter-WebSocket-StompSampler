@@ -408,12 +408,20 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
         return getPropertyAsString("sendPayload");
     }
 
-    public void setSendMultiPayload(String sendPayload) {
-        setProperty("sendMultiPayload", sendPayload);
+    public void setSendMultiPayload(String sendMultiPayload) {
+        setProperty("sendMultiPayload", sendMultiPayload);
     }
 
     public String getSendMultiPayload() {
         return getPropertyAsString("sendMultiPayload");
+    }
+
+    public void setSendMultiCounter(String sendMultiCounter) {
+        setProperty("sendMultiCounter", sendMultiCounter);
+    }
+
+    public String getSendMultiCounter() {
+        return getPropertyAsString("sendMultiCounter");
     }
 
 

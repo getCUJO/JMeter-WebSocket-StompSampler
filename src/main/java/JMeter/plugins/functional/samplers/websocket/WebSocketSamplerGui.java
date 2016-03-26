@@ -56,6 +56,7 @@ public class WebSocketSamplerGui extends AbstractSamplerGui {
             webSocketSamplerPanel.setConnectPayload(webSocketSamplerTestElement.getConnectPayload());
             webSocketSamplerPanel.setSendPayload(webSocketSamplerTestElement.getSendPayload());
             webSocketSamplerPanel.setSendMultiPayload(webSocketSamplerTestElement.getSendMultiPayload());
+            webSocketSamplerPanel.setSendMultiCounter(webSocketSamplerTestElement.getSendMultiCounter());
             webSocketSamplerPanel.setResponseTimeout(webSocketSamplerTestElement.getResponseTimeout());
             webSocketSamplerPanel.setConnectionTimeout(webSocketSamplerTestElement.getConnectionTimeout());
             webSocketSamplerPanel.setIgnoreSslErrors(webSocketSamplerTestElement.isIgnoreSslErrors());
@@ -89,6 +90,7 @@ public class WebSocketSamplerGui extends AbstractSamplerGui {
             webSocketSamplerTestElement.setConnectPayload(webSocketSamplerPanel.getConnectPayload());
             webSocketSamplerTestElement.setSendPayload(webSocketSamplerPanel.getSendPayload());
             webSocketSamplerTestElement.setSendMultiPayload(webSocketSamplerPanel.getSendMultiPayload());
+            webSocketSamplerTestElement.setSendMultiCounter(webSocketSamplerPanel.getSendMultiCounter());
             webSocketSamplerTestElement.setConnectionTimeout(webSocketSamplerPanel.getConnectionTimeout());
             webSocketSamplerTestElement.setResponseTimeout(webSocketSamplerPanel.getResponseTimeout());
             webSocketSamplerTestElement.setIgnoreSslErrors(webSocketSamplerPanel.isIgnoreSslErrors());

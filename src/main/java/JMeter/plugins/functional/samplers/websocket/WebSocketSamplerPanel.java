@@ -9,11 +9,12 @@ import org.apache.jmeter.protocol.http.gui.HTTPArgumentsPanel;
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
 
+import javax.swing.*;
+
 /**
  * @author Maciej Zaleski
  */
 public class WebSocketSamplerPanel extends javax.swing.JPanel {
-    private static final Logger log = LoggingManager.getLoggerForClass();
     private HTTPArgumentsPanel attributePanel;
 
     /**
@@ -62,12 +63,12 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
         connectPayloadEditorPane = new javax.swing.JEditorPane();
         sendPayloadEditorPane = new javax.swing.JEditorPane();
         sendMultiPayloadEditorPane = new javax.swing.JEditorPane();
+        sendMultiCounterTextField = new javax.swing.JTextField();
         jLabelConnect = new javax.swing.JLabel();
         jLabelSend = new javax.swing.JLabel();
         jLabelSendMulti = new javax.swing.JLabel();
+        jLabelSendMultiCounter = new javax.swing.JLabel();
         streamingConnectionCheckBox = new javax.swing.JCheckBox();
-        closeConncectionPatternTextField = new javax.swing.JTextField();
-        messageBacklogTextField = new javax.swing.JTextField();
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Web Server"));
 
@@ -158,6 +159,7 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
         jLabelConnect.setText("CONNECT");
         jLabelSend.setText("SEND");
         jLabelSendMulti.setText("SEND MULTI");
+        jLabelSendMultiCounter.setText(" times");
 
         streamingConnectionCheckBox.setText("Streaming connection");
 
@@ -173,22 +175,29 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
                                         .addComponent(jScrollPane2)
                                         .addComponent(jScrollPane3)
                                         .addGroup(jPanel3Layout.createSequentialGroup()
-                                                .addComponent(jLabel4)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(protocolTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                .addComponent(jLabel6)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(contentEncodingTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                .addComponent(jLabel8)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                .addComponent(connectionIdTextField))
+                                                        .addComponent(jLabel4)
+                                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                        .addComponent(protocolTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                        .addComponent(jLabel6)
+                                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                        .addComponent(contentEncodingTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                        .addComponent(jLabel8)
+                                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                        .addComponent(connectionIdTextField)
+                                        )
                                         .addGroup(jPanel3Layout.createSequentialGroup()
                                                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                                         .addComponent(jLabelConnect)
                                                         .addComponent(jLabelSend)
-                                                        .addComponent(jLabelSendMulti)
+                                                        .addGroup(jPanel3Layout.createSequentialGroup()
+                                                                        .addComponent(jLabelSendMulti)
+                                                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                                        .addComponent(sendMultiCounterTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                                        .addComponent(jLabelSendMultiCounter)
+                                                        )
                                                         .addGroup(jPanel3Layout.createSequentialGroup()
                                                                         .addComponent(ignoreSslErrorsCheckBox)
                                                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -206,12 +215,12 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
                         .addGroup(jPanel3Layout.createSequentialGroup()
                                 .addGap(10, 10, 10)
                                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(jLabel4)
-                                        .addComponent(protocolTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jLabel6)
-                                        .addComponent(contentEncodingTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jLabel8)
-                                        .addComponent(connectionIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addComponent(jLabel4)
+                                                .addComponent(protocolTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addComponent(jLabel6)
+                                                .addComponent(contentEncodingTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addComponent(jLabel8)
+                                                .addComponent(connectionIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 )
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -232,7 +241,11 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
                                 .addComponent(jLabelSend)
                                 .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
                                 .addContainerGap()
-                                .addComponent(jLabelSendMulti)
+                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                                .addComponent(jLabelSendMulti)
+                                                .addComponent(sendMultiCounterTextField)
+                                                .addComponent(jLabelSendMultiCounter)
+                                )
                                 .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
                                 .addContainerGap())
         );
@@ -267,7 +280,6 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextField closeConncectionPatternTextField;
     private javax.swing.JTextField connectionIdTextField;
     private javax.swing.JTextField connectionTimeoutTextField;
     private javax.swing.JTextField contentEncodingTextField;
@@ -278,6 +290,7 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabelSend;
     private javax.swing.JLabel jLabelSendMulti;
+    private javax.swing.JLabel jLabelSendMultiCounter;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -290,7 +303,6 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JTextField messageBacklogTextField;
     private javax.swing.JTextField protocolTextField;
     private javax.swing.JPanel querystringAttributesPanel;
     private javax.swing.JEditorPane connectPayloadEditorPane;
@@ -299,6 +311,7 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
     private javax.swing.JTextField responseTimeoutTextField;
     private javax.swing.JTextField serverAddressTextField;
     private javax.swing.JTextField serverPortTextField;
+    private javax.swing.JTextField sendMultiCounterTextField;
     private javax.swing.JCheckBox streamingConnectionCheckBox;
     // End of variables declaration//GEN-END:variables
 
@@ -386,13 +399,20 @@ public class WebSocketSamplerPanel extends javax.swing.JPanel {
         return sendPayloadEditorPane.getText();
     }
 
-    //TODO
     public void setSendMultiPayload(String sendPayload) {
         sendMultiPayloadEditorPane.setText(sendPayload);
     }
 
     public String getSendMultiPayload() {
         return sendMultiPayloadEditorPane.getText();
+    }
+
+    public void setSendMultiCounter(String serverPort) {
+        sendMultiCounterTextField.setText(serverPort);
+    }
+
+    public String getSendMultiCounter() {
+        return sendMultiCounterTextField.getText();
     }
 
     public void setStreamingConnection(Boolean streamingConnection) {

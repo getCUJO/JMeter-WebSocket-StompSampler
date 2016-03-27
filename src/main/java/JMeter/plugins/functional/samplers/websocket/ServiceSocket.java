@@ -43,9 +43,9 @@ public class ServiceSocket {
     protected CountDownLatch connectedLatch = new CountDownLatch(1);
     protected CountDownLatch sendLatch = new CountDownLatch(1);
     protected Session session = null;
-    protected String connectPattern;
-    protected String sendPattern;
-    protected String disconnectPattern;
+    protected String connectPattern = "^CONNECTED.*";
+    protected String sendPattern  = ".*TBD.*";
+    protected String disconnectPattern = "^RECEIPT.*";
     protected int messageCounter = 1;
     protected Pattern connectedExpression;
     protected Pattern sendExpression;
@@ -196,13 +196,8 @@ public class ServiceSocket {
     }
 
     public void sendMessage(String message) throws IOException {
-//		session.getRemote().sendString(message);
-        String termMessage = message + "\u0000";
-        log.debug("** send message ** session id {" + sessionId + "} : " + termMessage + ", bytes: " + Arrays.toString(termMessage.getBytes()));
-        ByteBuffer byteBuffer = ByteBuffer.wrap(termMessage.getBytes());
-
-        session.getRemote().sendString(termMessage);
-//        session.getRemote().sendBytes(byteBuffer);
+        log.debug("** send message ** session id {" + sessionId + "} : " + message + ", bytes: " + Arrays.toString(message.getBytes()));
+        session.getRemote().sendString(message);
     }
 
     public void close() {
@@ -252,12 +247,13 @@ public class ServiceSocket {
     protected void initializePatterns() {
         try {
             logMessage.append(" - Using response message pattern \"").append(connectPattern).append("\"\n");
-            connectedExpression = StringUtils.isNotEmpty(connectPattern) ? Pattern.compile(connectPattern) : null;
+            connectedExpression = StringUtils.isNotEmpty(connectPattern) ? Pattern.compile(connectPattern, Pattern.DOTALL | Pattern.MULTILINE) : null;
         } catch (Exception ex) {
             logMessage.append(" - Invalid response message regular expression pattern: ").append(ex.getLocalizedMessage()).append("\n");
             log.error("Invalid response message regular expression pattern: " + ex.getLocalizedMessage());
             connectedExpression = null;
         }
+
         try {
             logMessage.append(" - Using response message pattern \"").append(sendPattern).append("\"\n");
             sendExpression = StringUtils.isNotEmpty(sendPattern) ? Pattern.compile(sendPattern) : null;

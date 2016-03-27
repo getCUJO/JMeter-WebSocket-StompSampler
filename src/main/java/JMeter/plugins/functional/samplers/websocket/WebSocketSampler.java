@@ -123,6 +123,8 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
         //Set the message payload in the Sampler
         String connectPaylodMessage = getConnectPayload();
         String sendPaylodMessage = getSendPayload();
+        String sendMultiPaylodMessage = getSendMultiPayload();
+        int sendMultiCounter = Integer.parseInt(getSendMultiCounter());
 
         int responseTimeout;
         try {
@@ -134,7 +136,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 
         sampleResult.setSamplerData(new StringBuilder(connectPaylodMessage).append("\n").append(sendPaylodMessage).toString());
 
-        //Could improve precission by moving this closer to the action
+        //Could improve precision by moving this closer to the action
         sampleResult.sampleStart();
 
         try {
@@ -149,17 +151,6 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
                 return sampleResult;
 
             }
-//TODO
-//            if (StringUtils.isEmpty(connectPaylodMessage) || StringUtils.isEmpty(sendPaylodMessage)) {
-//                //Couldn't open a connection, set the status and exit
-//                sampleResult.setResponseCode("400");
-//                sampleResult.setSuccessful(false);
-//                sampleResult.sampleEnd();
-//                errorList.append(" - Connect or Subscribe Payload Message is empty").append("\n");
-//                sampleResult.setResponseMessage(errorList.toString());
-//                return sampleResult;
-//            }
-
 
             sendMessage(socket, connectPaylodMessage);
 
@@ -169,20 +160,24 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
             // - Timeout is reached
 
             socket.awaitConnected(responseTimeout, TimeUnit.MILLISECONDS);
-//
-//            Thread.sleep(3000);
-//
-//            sampleResult.setResponseCode(getCodeRetour(socket));
-//
-//            sendMessage(socket, sendPaylodMessage);
+
+            sampleResult.setResponseCode(getCodeRetour(socket));
+
+            sendMessage(socket, sendPaylodMessage);
+
 
             //Wait for any of the following:
             // - Response matching response pattern is received
             // - Response matching connection closing pattern is received
             // - Timeout is reached
-//            socket.awaitSend(responseTimeout, TimeUnit.MILLISECONDS);
+            socket.awaitSend(responseTimeout, TimeUnit.MILLISECONDS);
 
             sampleResult.setResponseCode(getCodeRetour(socket));
+
+            for (int i = 0; i < sendMultiCounter; i++) {
+                sendMessage(socket, sendMultiPaylodMessage);
+            }
+            //not waiting anymore - connection can be closed(?)
 
             //Set sampler response code
             if (socket.getError() != 0) {
@@ -218,8 +213,12 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 
     private void sendMessage(ServiceSocket socket, String payloadMessage) throws IOException, InterruptedException {
         //Send message only if it is not empty
-
-        socket.sendMessage(payloadMessage);
+        if (!StringUtils.isEmpty(payloadMessage)) {
+            String termMessage = payloadMessage + "\n\n\u0000";
+            socket.sendMessage(termMessage);
+        }else{
+            log.warn("empty message. send skipped");
+        }
     }
 
     private String getCodeRetour(ServiceSocket socket) {
@@ -232,31 +231,6 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
         return codeRetour;
     }
 
-    /**
-     * Build Payload message like [" ....\\n\\n\\u0000"]
-     *
-     * @param payloadMessage message
-     * @return payload
-     */
-    protected static String getStompPayload(final String payloadMessage) {
-        Matcher regexMatcher = REGEX_STOMP.matcher(payloadMessage);
-        StringBuilder builder = new StringBuilder();
-        while (regexMatcher.find()) {
-            // matched text: regexMatcher.group(i)
-            // add group 1 to key and group 2 to value of hash
-            builder.append("[\"").append(regexMatcher.group(1));
-
-            String parameters = regexMatcher.group(2);
-            if (StringUtils.isNotEmpty(parameters)) {
-                builder.append(regexMatcher.group(2));
-            }
-
-            builder.append("\\n\\n\\u0000").append("\"]");
-        }
-        String payLoad = builder.toString();
-
-        return payLoad;
-    }
 
     @Override
     public void setName(String name) {

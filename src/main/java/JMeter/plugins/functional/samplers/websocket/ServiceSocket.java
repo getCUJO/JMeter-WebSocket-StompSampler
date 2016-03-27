@@ -57,11 +57,6 @@ public class ServiceSocket {
         this.parent = parent;
         this.client = client;
 
-        //TODO hard-coded connect patterns
-        //Evaluate response matching patterns in case thay contain JMeter variables (i.e. ${var})
-        connectPattern = new CompoundVariable("TODO").execute();
-        sendPattern = new CompoundVariable("TODO").execute();
-        disconnectPattern = new CompoundVariable("TODO").execute();
         logMessage.append("\n\n[Execution Flow]\n");
         logMessage.append(" - Opening new connection\n");
         initializePatterns();

@@ -35,7 +35,7 @@ public class WebSocketSamplerGui extends AbstractSamplerGui {
 
     @Override
     public String getStaticLabel() {
-        return "WebSocket Sampler";
+        return "WebSocket Stomp Sampler";
     }
 
     @Override

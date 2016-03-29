@@ -61,7 +61,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 
     public WebSocketSampler() {
         super();
-        setName("WebSocket sampler");
+        setName("WebSocket Stomp sampler");
     }
 
     private ServiceSocket getConnectionSocket() throws Exception {
@@ -170,14 +170,14 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
             // - Response matching response pattern is received
             // - Response matching connection closing pattern is received
             // - Timeout is reached
-            socket.awaitSend(responseTimeout, TimeUnit.MILLISECONDS);
+//            socket.awaitSend(responseTimeout, TimeUnit.MILLISECONDS);
 
             sampleResult.setResponseCode(getCodeRetour(socket));
 
             for (int i = 0; i < sendMultiCounter; i++) {
                 sendMessage(socket, sendMultiPaylodMessage);
             }
-            //not waiting anymore - connection can be closed(?)
+            socket.awaitSend(responseTimeout, TimeUnit.MILLISECONDS);
 
             //Set sampler response code
             if (socket.getError() != 0) {
@@ -214,7 +214,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
     private void sendMessage(ServiceSocket socket, String payloadMessage) throws IOException, InterruptedException {
         //Send message only if it is not empty
         if (!StringUtils.isEmpty(payloadMessage)) {
-            String termMessage = payloadMessage + "\n\n\u0000";
+            String termMessage = payloadMessage + "\u0000";
             socket.sendMessage(termMessage);
         }else{
             log.warn("empty message. send skipped");

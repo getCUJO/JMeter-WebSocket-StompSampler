@@ -44,7 +44,6 @@ public class ServiceSocket {
     protected CountDownLatch sendLatch = new CountDownLatch(1);
     protected Session session = null;
     protected String connectPattern = "^CONNECTED.*";
-    protected String sendPattern  = ".*TBD.*";
     protected String disconnectPattern = "^RECEIPT.*";
     protected int messageCounter = 1;
     protected Pattern connectedExpression;
@@ -157,19 +156,6 @@ public class ServiceSocket {
         return res;
     }
 
-    public boolean awaitSend(int duration, TimeUnit unit) throws InterruptedException {
-        logMessage.append(" - Waiting for messages for ").append(duration).append(" ").append(unit.toString()).append("\n");
-        boolean res = this.sendLatch.await(duration, unit);
-
-        if (!parent.isStreamingConnection()) {
-            close(StatusCode.NORMAL, "JMeter closed session.");
-        } else {
-            logMessage.append(" - Leaving streaming connection open").append("\n");
-        }
-
-        return res;
-    }
-
     public boolean awaitOpen(int duration, TimeUnit unit) throws InterruptedException {
         logMessage.append(" - Waiting for the server connection for ").append(duration).append(" ").append(unit.toString()).append("\n");
         boolean res = this.openLatch.await(duration, unit);
@@ -247,15 +233,6 @@ public class ServiceSocket {
             logMessage.append(" - Invalid response message regular expression pattern: ").append(ex.getLocalizedMessage()).append("\n");
             log.error("Invalid response message regular expression pattern: " + ex.getLocalizedMessage());
             connectedExpression = null;
-        }
-
-        try {
-            logMessage.append(" - Using response message pattern \"").append(sendPattern).append("\"\n");
-            sendExpression = StringUtils.isNotEmpty(sendPattern) ? Pattern.compile(sendPattern) : null;
-        } catch (Exception ex) {
-            logMessage.append(" - Invalid response message regular expression pattern: ").append(ex.getLocalizedMessage()).append("\n");
-            log.error("Invalid response message regular expression pattern: " + ex.getLocalizedMessage());
-            sendExpression = null;
         }
 
         try {

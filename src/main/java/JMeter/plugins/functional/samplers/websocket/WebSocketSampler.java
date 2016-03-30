@@ -134,7 +134,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
             responseTimeout = DEFAULT_RESPONSE_TIMEOUT;
         }
 
-        sampleResult.setSamplerData(new StringBuilder(connectPaylodMessage).append("\n").append(sendPaylodMessage).toString());
+        StringBuilder sampleDataBuilder = new StringBuilder();
 
         //Could improve precision by moving this closer to the action
         sampleResult.sampleStart();
@@ -160,24 +160,20 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
             // - Timeout is reached
 
             socket.awaitConnected(responseTimeout, TimeUnit.MILLISECONDS);
-
             sampleResult.setResponseCode(getCodeRetour(socket));
+            sampleDataBuilder.append(connectPaylodMessage);
 
             sendMessage(socket, sendPaylodMessage);
-
-
-            //Wait for any of the following:
-            // - Response matching response pattern is received
-            // - Response matching connection closing pattern is received
-            // - Timeout is reached
-//            socket.awaitSend(responseTimeout, TimeUnit.MILLISECONDS);
-
             sampleResult.setResponseCode(getCodeRetour(socket));
+            sampleDataBuilder.append(sendPaylodMessage).append("\n\n\n");
 
             for (int i = 0; i < sendMultiCounter; i++) {
                 sendMessage(socket, sendMultiPaylodMessage);
+                sampleResult.setResponseCode(getCodeRetour(socket));
+                sampleDataBuilder.append(sendMultiPaylodMessage).append("\n\n\n");
             }
-            socket.awaitSend(responseTimeout, TimeUnit.MILLISECONDS);
+
+            sampleResult.setSamplerData(sampleDataBuilder.toString());
 
             //Set sampler response code
             if (socket.getError() != 0) {

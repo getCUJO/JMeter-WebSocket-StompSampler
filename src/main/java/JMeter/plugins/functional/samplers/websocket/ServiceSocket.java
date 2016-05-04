@@ -4,18 +4,7 @@
  */
 package JMeter.plugins.functional.samplers.websocket;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.jmeter.engine.util.CompoundVariable;
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
 import org.eclipse.jetty.websocket.api.Session;
@@ -26,6 +15,14 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+
 /**
  * @author Maciej Zaleski
  */
@@ -35,18 +32,15 @@ public class ServiceSocket {
     protected final WebSocketSampler parent;
     protected WebSocketClient client;
     private static final Logger log = LoggingManager.getLoggerForClass();
-    protected Deque<String> responeBacklog = new LinkedList<String>();
+    protected Deque<String> responseBacklog = new LinkedList<>();
     protected Integer error = 0;
     protected StringBuffer logMessage = new StringBuffer();
     protected CountDownLatch openLatch = new CountDownLatch(1);
     protected CountDownLatch closeLatch = new CountDownLatch(1);
-    protected CountDownLatch connectedLatch = new CountDownLatch(1);
-    protected CountDownLatch sendLatch = new CountDownLatch(1);
+    protected CountDownLatch sendLatch;
     protected Session session = null;
-    protected String connectPattern = "^CONNECTED.*";
     protected String disconnectPattern = "^RECEIPT.*";
     protected int messageCounter = 1;
-    protected Pattern connectedExpression;
     protected Pattern sendExpression;
     protected Pattern disconnectExpression;
     protected boolean connected = false;
@@ -70,16 +64,13 @@ public class ServiceSocket {
             logMessage.append(msg);
             addResponseMessage("[Message " + (messageCounter++) + "]\n" + msg + "\n\n");
 
-            if (connectedExpression == null || connectedExpression.matcher(msg).find()) {
-                logMessage.append("; matched connected pattern").append("\n");
-                connectedLatch.countDown();
-            } else if (sendExpression == null || sendExpression.matcher(msg).find()) {
-                logMessage.append("; matched send pattern").append("\n");
-                sendLatch.countDown();
-            } else if (!disconnectPattern.isEmpty() && disconnectExpression.matcher(msg).find()) {
+            if (!disconnectPattern.isEmpty() && disconnectExpression.matcher(msg).find()) {
                 logMessage.append("; matched connection close pattern").append("\n");
                 closeLatch.countDown();
                 close(StatusCode.NORMAL, "JMeter closed session.");
+            } else if (sendExpression == null || sendExpression.matcher(msg).find()) {
+                logMessage.append("; matched send pattern").append("\n");
+                sendLatch.countDown();
             } else {
                 logMessage.append("; didn't match any pattern").append("\n");
             }
@@ -109,23 +100,19 @@ public class ServiceSocket {
         //Notify connection opening and closing latches of the closed connection
         openLatch.countDown();
         closeLatch.countDown();
-        connectedLatch.countDown();
         connected = false;
     }
 
     /**
-     * @return response message made of messages saved in the responeBacklog cache
+     * @return response message made of messages saved in the responseBacklog cache
      */
     public String getResponseMessage() {
         synchronized (parent) {
             String responseMessage = "";
-
-            //Iterate through response messages saved in the responeBacklog cache
-            Iterator<String> iterator = responeBacklog.iterator();
-            while (iterator.hasNext()) {
-                responseMessage += iterator.next();
+            //Iterate through response messages saved in the responseBacklog cache
+            for (String response : responseBacklog) {
+                responseMessage += response;
             }
-
             return responseMessage;
         }
     }
@@ -143,9 +130,12 @@ public class ServiceSocket {
         return res;
     }
 
-    public boolean awaitConnected(int duration, TimeUnit unit) throws InterruptedException {
+    public boolean awaitResponseMessage(int duration, TimeUnit unit) throws InterruptedException {
         logMessage.append(" - Waiting for messages for ").append(duration).append(" ").append(unit.toString()).append("\n");
-        boolean res = this.connectedLatch.await(duration, unit);
+        boolean res = true;
+        if (sendExpression != null) {
+            res = this.sendLatch.await(duration, unit);
+        }
 
         if (!parent.isStreamingConnection()) {
             close(StatusCode.NORMAL, "JMeter closed session.");
@@ -176,8 +166,11 @@ public class ServiceSocket {
         return session;
     }
 
-    public void sendMessage(String message) throws IOException {
+    public void sendMessage(String message, String expression) throws IOException {
         log.debug("** send message ** session id {" + sessionId + "} : " + message + ", bytes: " + Arrays.toString(message.getBytes()));
+        sendExpression = initPattern(expression, "response");
+        responseBacklog.clear();
+        sendLatch = new CountDownLatch(1);
         session.getRemote().sendString(message);
     }
 
@@ -202,6 +195,7 @@ public class ServiceSocket {
         } catch (Exception e) {
             logMessage.append(" - WebSocket client wasn't started (...that's odd)").append("\n");
         }
+        parent.removeConnection(sessionId);
     }
 
     /**
@@ -226,24 +220,18 @@ public class ServiceSocket {
     }
 
     protected void initializePatterns() {
-        try {
-            logMessage.append(" - Using response message pattern \"").append(connectPattern).append("\"\n");
-            connectedExpression = StringUtils.isNotEmpty(connectPattern) ? Pattern.compile(connectPattern, Pattern.DOTALL | Pattern.MULTILINE) : null;
-        } catch (Exception ex) {
-            logMessage.append(" - Invalid response message regular expression pattern: ").append(ex.getLocalizedMessage()).append("\n");
-            log.error("Invalid response message regular expression pattern: " + ex.getLocalizedMessage());
-            connectedExpression = null;
-        }
+        disconnectExpression = initPattern(disconnectPattern, "disconnect");
+    }
 
+    private Pattern initPattern(String pattern, String type) {
         try {
-            logMessage.append(" - Using disconnect pattern \"").append(disconnectPattern).append("\"\n");
-            disconnectExpression = StringUtils.isNotEmpty(disconnectPattern) ? Pattern.compile(disconnectPattern) : null;
+            logMessage.append(" - Using ").append(type).append(" message pattern \"").append(pattern).append("\"\n");
+            return StringUtils.isNotEmpty(pattern) ? Pattern.compile(pattern, Pattern.DOTALL | Pattern.MULTILINE) : null;
         } catch (Exception ex) {
-            logMessage.append(" - Invalid disconnect regular expression pattern: ").append(ex.getLocalizedMessage()).append("\n");
-            log.error("Invalid disconnect regular regular expression pattern: " + ex.getLocalizedMessage());
-            disconnectExpression = null;
+            logMessage.append(" - Invalid ").append(type).append(" message regular expression pattern: ").append(ex.getLocalizedMessage()).append("\n");
+            log.error("Invalid " + type + " message regular expression pattern: " + ex.getLocalizedMessage());
         }
-
+        return null;
     }
 
     /**
@@ -261,10 +249,10 @@ public class ServiceSocket {
     }
 
     private void addResponseMessage(String message) {
-        while (responeBacklog.size() >= WebSocketSampler.MESSAGE_BACKLOG_COUNT) {
-            responeBacklog.poll();
+        while (responseBacklog.size() >= WebSocketSampler.MESSAGE_BACKLOG_COUNT) {
+            responseBacklog.poll();
         }
-        responeBacklog.add(message);
+        responseBacklog.add(message);
     }
 
     public void setSessionId(final String sessionId) {

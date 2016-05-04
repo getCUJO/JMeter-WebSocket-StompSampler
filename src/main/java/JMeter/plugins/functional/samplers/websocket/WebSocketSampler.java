@@ -13,7 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -58,21 +57,18 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 
     private static ExecutorService executor = Executors.newCachedThreadPool();
 
-
     public WebSocketSampler() {
-        super();
         setName("WebSocket Stomp sampler");
     }
 
     private ServiceSocket getConnectionSocket() throws Exception {
         URI uri = getUri();
-
         String connectionId = getConnectionId();
-
+        if (connectionId == null) {
+            connectionId = Thread.currentThread().getName();
+        }
         if (isStreamingConnection() && connectionList.containsKey(connectionId)) {
-
             log.debug("connection " + connectionId + "already in list");
-
             ServiceSocket socket = connectionList.get(connectionId);
             socket.initialize();
             return socket;
@@ -88,7 +84,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
             connectionList.put(connectionId, socket);
         }
 
-        //Start WebSocket client thread and upgrage HTTP connection
+        //Start WebSocket client thread and upgrade HTTP connection
         webSocketClient.start();
         ClientUpgradeRequest request = new ClientUpgradeRequest();
         webSocketClient.connect(socket, uri, request);
@@ -121,11 +117,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
         boolean isOK = false;
 
         //Set the message payload in the Sampler
-        String connectPaylodMessage = getConnectPayload();
-        String sendPaylodMessage = getSendPayload();
-        String sendMultiPaylodMessage = getSendMultiPayload();
-        int sendMultiCounter = Integer.parseInt(getSendMultiCounter());
-
+        String connectPayloadMessage = getConnectPayload();
         int responseTimeout;
         try {
             responseTimeout = Integer.parseInt(getResponseTimeout());
@@ -149,29 +141,18 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
                 sampleResult.setResponseMessage(errorList.toString());
                 errorList.append(" - Connection couldn't be opened").append("\n");
                 return sampleResult;
-
             }
 
-            sendMessage(socket, connectPaylodMessage);
+            sendMessage(socket, connectPayloadMessage);
 
             //Wait for any of the following:
             // - Response matching response pattern is received
             // - Response matching connection closing pattern is received
             // - Timeout is reached
 
-            socket.awaitConnected(responseTimeout, TimeUnit.MILLISECONDS);
+            socket.awaitResponseMessage(responseTimeout, TimeUnit.MILLISECONDS);
             sampleResult.setResponseCode(getCodeRetour(socket));
-            sampleDataBuilder.append(connectPaylodMessage);
-
-            sendMessage(socket, sendPaylodMessage);
-            sampleResult.setResponseCode(getCodeRetour(socket));
-            sampleDataBuilder.append(sendPaylodMessage).append("\n\n\n");
-
-            for (int i = 0; i < sendMultiCounter; i++) {
-                sendMessage(socket, sendMultiPaylodMessage);
-                sampleResult.setResponseCode(getCodeRetour(socket));
-                sampleDataBuilder.append(sendMultiPaylodMessage).append("\n\n\n");
-            }
+            sampleDataBuilder.append(connectPayloadMessage);
 
             sampleResult.setSamplerData(sampleDataBuilder.toString());
 
@@ -186,7 +167,9 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 
             //set sampler response
             sampleResult.setResponseData(socket.getResponseMessage(), getContentEncoding());
-
+            if (!isStreamingConnection()) {
+                socket.close();
+            }
         } catch (URISyntaxException e) {
             errorList.append(" - Invalid URI syntax: ").append(e.getMessage()).append("\n").append(StringUtils.join(e.getStackTrace(), "\n")).append("\n");
         } catch (IOException e) {
@@ -207,11 +190,15 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
         return sampleResult;
     }
 
+    public void removeConnection(String sessionId) {
+        connectionList.remove(sessionId);
+    }
+
     private void sendMessage(ServiceSocket socket, String payloadMessage) throws IOException, InterruptedException {
         //Send message only if it is not empty
         if (!StringUtils.isEmpty(payloadMessage)) {
             String termMessage = payloadMessage + "\u0000";
-            socket.sendMessage(termMessage);
+            socket.sendMessage(termMessage, getResponseExpression());
         }else{
             log.warn("empty message. send skipped");
         }
@@ -370,30 +357,13 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
         return getPropertyAsString("connectPayload");
     }
 
-    public void setSendPayload(String sendPayload) {
-        setProperty("sendPayload", sendPayload);
+    public void setResponseExpression(String expression) {
+        setProperty("responseExpression", expression);
     }
 
-    public String getSendPayload() {
-        return getPropertyAsString("sendPayload");
+    public String getResponseExpression() {
+        return getPropertyAsString("responseExpression");
     }
-
-    public void setSendMultiPayload(String sendMultiPayload) {
-        setProperty("sendMultiPayload", sendMultiPayload);
-    }
-
-    public String getSendMultiPayload() {
-        return getPropertyAsString("sendMultiPayload");
-    }
-
-    public void setSendMultiCounter(String sendMultiCounter) {
-        setProperty("sendMultiCounter", sendMultiCounter);
-    }
-
-    public String getSendMultiCounter() {
-        return getPropertyAsString("sendMultiCounter");
-    }
-
 
     public void setIgnoreSslErrors(Boolean ignoreSslErrors) {
         setProperty("ignoreSslErrors", ignoreSslErrors);
@@ -429,7 +399,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
         PropertyIterator iter = getQueryStringParameters().iterator();
         boolean first = true;
         while (iter.hasNext()) {
-            HTTPArgument item = null;
+            HTTPArgument item;
             Object objectValue = iter.next().getObjectValue();
             try {
                 item = (HTTPArgument) objectValue;
@@ -467,8 +437,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
     }
 
     public Arguments getQueryStringParameters() {
-        Arguments args = (Arguments) getProperty("queryStringParameters").getObjectValue();
-        return args;
+        return (Arguments) getProperty("queryStringParameters").getObjectValue();
     }
 
 
@@ -479,7 +448,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 
     @Override
     public void testStarted(String host) {
-        connectionList = new ConcurrentHashMap<String, ServiceSocket>();
+        connectionList = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -493,6 +462,4 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
             socket.close();
         }
     }
-
-
 }

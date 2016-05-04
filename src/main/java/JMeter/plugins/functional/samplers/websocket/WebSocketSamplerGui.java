@@ -54,14 +54,12 @@ public class WebSocketSamplerGui extends AbstractSamplerGui {
             webSocketSamplerPanel.setContextPath(webSocketSamplerTestElement.getContextPath());
             webSocketSamplerPanel.setContentEncoding(webSocketSamplerTestElement.getContentEncoding());
             webSocketSamplerPanel.setConnectPayload(webSocketSamplerTestElement.getConnectPayload());
-            webSocketSamplerPanel.setSendPayload(webSocketSamplerTestElement.getSendPayload());
-            webSocketSamplerPanel.setSendMultiPayload(webSocketSamplerTestElement.getSendMultiPayload());
-            webSocketSamplerPanel.setSendMultiCounter(webSocketSamplerTestElement.getSendMultiCounter());
             webSocketSamplerPanel.setResponseTimeout(webSocketSamplerTestElement.getResponseTimeout());
             webSocketSamplerPanel.setConnectionTimeout(webSocketSamplerTestElement.getConnectionTimeout());
             webSocketSamplerPanel.setIgnoreSslErrors(webSocketSamplerTestElement.isIgnoreSslErrors());
             webSocketSamplerPanel.setStreamingConnection(webSocketSamplerTestElement.isStreamingConnection());
             webSocketSamplerPanel.setConnectionId(webSocketSamplerTestElement.getConnectionId());
+            webSocketSamplerPanel.setResponseExpression(webSocketSamplerTestElement.getResponseExpression());
 
             Arguments queryStringParameters = webSocketSamplerTestElement.getQueryStringParameters();
             if (queryStringParameters != null) {
@@ -88,14 +86,12 @@ public class WebSocketSamplerGui extends AbstractSamplerGui {
             webSocketSamplerTestElement.setContextPath(webSocketSamplerPanel.getContextPath());
             webSocketSamplerTestElement.setContentEncoding(webSocketSamplerPanel.getContentEncoding());
             webSocketSamplerTestElement.setConnectPayload(webSocketSamplerPanel.getConnectPayload());
-            webSocketSamplerTestElement.setSendPayload(webSocketSamplerPanel.getSendPayload());
-            webSocketSamplerTestElement.setSendMultiPayload(webSocketSamplerPanel.getSendMultiPayload());
-            webSocketSamplerTestElement.setSendMultiCounter(webSocketSamplerPanel.getSendMultiCounter());
             webSocketSamplerTestElement.setConnectionTimeout(webSocketSamplerPanel.getConnectionTimeout());
             webSocketSamplerTestElement.setResponseTimeout(webSocketSamplerPanel.getResponseTimeout());
             webSocketSamplerTestElement.setIgnoreSslErrors(webSocketSamplerPanel.isIgnoreSslErrors());
             webSocketSamplerTestElement.setStreamingConnection(webSocketSamplerPanel.isStreamingConnection());
             webSocketSamplerTestElement.setConnectionId(webSocketSamplerPanel.getConnectionId());
+            webSocketSamplerTestElement.setResponseExpression(webSocketSamplerPanel.getResponseExpression());
 
             ArgumentsPanel queryStringParameters = webSocketSamplerPanel.getAttributePanel();
             if (queryStringParameters != null) {

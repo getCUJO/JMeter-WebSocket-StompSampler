@@ -63,7 +63,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
 
     private ServiceSocket getConnectionSocket(URI uri) throws Exception {
         String connectionId = getConnectionId();
-        if (connectionId == null) {
+        if (StringUtils.isEmpty(connectionId)) {
             connectionId = Thread.currentThread().getName();
         }
         if (isStreamingConnection() && connectionList.containsKey(connectionId)) {
@@ -143,6 +143,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
                 errorList.append(" - Connection couldn't be opened").append("\n");
                 return sampleResult;
             }
+            sampleDataBuilder.append("Socket: ").append(socket.hashCode()).append('\n');
 
             sendMessage(socket, connectPayloadMessage);
 

@@ -61,8 +61,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
         setName("WebSocket Stomp sampler");
     }
 
-    private ServiceSocket getConnectionSocket() throws Exception {
-        URI uri = getUri();
+    private ServiceSocket getConnectionSocket(URI uri) throws Exception {
         String connectionId = getConnectionId();
         if (connectionId == null) {
             connectionId = Thread.currentThread().getName();
@@ -132,7 +131,9 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
         sampleResult.sampleStart();
 
         try {
-            socket = getConnectionSocket();
+            URI uri = getUri();
+            sampleDataBuilder.append(uri).append('\n');
+            socket = getConnectionSocket(uri);
             if (socket == null) {
                 //Couldn't open a connection, set the status and exit
                 sampleResult.setResponseCode("500");
@@ -150,14 +151,14 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
             // - Response matching connection closing pattern is received
             // - Timeout is reached
 
-            socket.awaitResponseMessage(responseTimeout, TimeUnit.MILLISECONDS);
+            boolean result = socket.awaitResponseMessage(responseTimeout, TimeUnit.MILLISECONDS);
             sampleResult.setResponseCode(getCodeRetour(socket));
             sampleDataBuilder.append(connectPayloadMessage);
 
             sampleResult.setSamplerData(sampleDataBuilder.toString());
 
             //Set sampler response code
-            if (socket.getError() != 0) {
+            if (!result || socket.getError() != 0) {
                 isOK = false;
                 sampleResult.setResponseCode(socket.getError().toString());
             } else {

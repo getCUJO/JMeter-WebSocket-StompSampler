@@ -26,6 +26,7 @@ import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.testelement.TestStateListener;
+import org.apache.jmeter.testelement.ThreadListener;
 import org.apache.jmeter.testelement.property.PropertyIterator;
 import org.apache.jmeter.testelement.property.StringProperty;
 import org.apache.jmeter.testelement.property.TestElementProperty;
@@ -39,7 +40,7 @@ import org.eclipse.jetty.websocket.client.WebSocketClient;
 /**
  * @author Maciej Zaleski
  */
-public class WebSocketSampler extends AbstractSampler implements TestStateListener {
+public class WebSocketSampler extends AbstractSampler implements TestStateListener, ThreadListener {
     public static int DEFAULT_CONNECTION_TIMEOUT = 20000; //20 sec
     public static int DEFAULT_RESPONSE_TIMEOUT = 20000; //20 sec
     public static int MESSAGE_BACKLOG_COUNT = 3;
@@ -54,6 +55,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
     private static Pattern REGEX_STOMP = Pattern.compile("(CONNECT|DISCONNECT|SUBSCRIBE|UNSUBSCRIBE|SEND|BEGIN|COMMIT|ACK|ABORT|NACK)(.*)", Pattern.DOTALL | Pattern.MULTILINE);
 
     private static Map<String, ServiceSocket> connectionList;
+    private static ThreadLocal<ServiceSocket> serviceSocketThreadLocal = new ThreadLocal<>();
 
     private static ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -81,6 +83,7 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
         socket.setSessionId(connectionId);
         if (isStreamingConnection()) {
             connectionList.put(connectionId, socket);
+            serviceSocketThreadLocal.set(socket);
         }
 
         //Start WebSocket client thread and upgrade HTTP connection
@@ -462,6 +465,18 @@ public class WebSocketSampler extends AbstractSampler implements TestStateListen
     public void testEnded(String host) {
         for (ServiceSocket socket : connectionList.values()) {
             socket.close();
+        }
+    }
+
+    @Override
+    public void threadStarted() {
+    }
+
+    @Override
+    public void threadFinished() {
+        ServiceSocket serviceSocket = serviceSocketThreadLocal.get();
+        if (serviceSocket != null) {
+            serviceSocket.close();
         }
     }
 }
